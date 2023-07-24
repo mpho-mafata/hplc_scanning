@@ -4,8 +4,28 @@
   setwd("C:/Users/mafata/Desktop/WORK/Collaborative Work/Cody")
   library("ncdf4")
   library("tidyverse")
-  library("hrbrthemes")
   
+  # Create a data frame with all the .aia file folders
+  hplc_wines <- data.frame(filename = list.files("C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files"))
+  hplc_wines <- hplc_wines  %>%
+    mutate(filepath = paste0("C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files/", filename))
+  
+  # Create a list of all files and the contained signals in each
+  list_wine_signals <-list()
+  for (sample in samples) 
+    {
+    hplc_wine_signals_sample <- data.frame(signals = list.files(sample))
+    list_wine_signals[[sample]] <-data.frame(hplc_wine_signals_sample )
+    }
+    names(list_wine_signals) <- str_sub (hplc_wines$filename, end = -5)
+    
+   # Fetch the data from each signal file
+    for (i in 1:length(list_wine_signals))
+    {
+      list_wine_dad_280 <- data.frame(dad_280 = lapply("C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files/SIGNAL01.cdf", nc_open))
+    }
+
+    {  
   # DAD 280nm
   signal_1_file <- 'C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files/AVN_CB_T0_R1.aia/SIGNAL01.cdf'
   signal_1 <- nc_open(signal_1_file, write=FALSE, readunlim=FALSE, verbose=FALSE, 
@@ -16,6 +36,7 @@
   peak_area <- as.data.frame(peak_area)
   signal_1_df <- as.data.frame(c(peak_retention_time, peak_area))
   signal_1_df$peak_retention_time <- (signal_1_df$peak_retention_time)/60 
+    }
   
   # DAD 320nm
   signal_2_file <- 'C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files/AVN_CB_T0_R1.aia/SIGNAL02.cdf'
