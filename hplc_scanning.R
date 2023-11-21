@@ -1,8 +1,10 @@
 rm(list = ls())#clear the environment to save on driver space and run faster
-setwd("C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning")
-library("ncdf4")
-library("tidyverse")
-library("glue")
+setwd("C:/Users/mafata/Documents/GitHub/hplc_scanning/assets")
+library("ncdf4") # for accessing information in a cdf file
+library("tidyverse") # to wrangle data frames
+library("glue") 
+library("ggplot2") # to plot the spectra
+library("scales") # for formating numerical data in plots
 # Create a data frame with all the .aia file folder names and paths
 hplc_wines <-
   data.frame(
@@ -55,297 +57,206 @@ else if (dataset == "uv_420"){uv420_list = dataset_list}
 else {fluo_list = dataset_list}
 }
 
-# feetch the spectra for each signal
-peak_retention_time <-
-  ncvar_get(signal_1, signal_1$var$peak_retention_time)
-peak_retention_time <- as.data.frame(peak_retention_time)
-peak_area <- ncvar_get(signal_1, signal_1$var$peak_area)
-peak_area <- as.data.frame(peak_area)
-signal_1_df <- as.data.frame(c(peak_retention_time, peak_area))
-signal_1_df$peak_retention_time <-
-  (signal_1_df$peak_retention_time) / 60
+# fetch the spectra for each signal into separate data frames
+uv_280_spectra = list()
+for (i in 1:length(uv280_list)){
+  # Add verbosity to the script
+  print(glue(". . . generating sample number {i} uv 280 nm spectra"))
+  peak_retention_time <-as.data.frame(ncvar_get(
+  uv280_list[[i]],
+  uv280_list[[i]]$var$peak_retention_time))
+  colnames(peak_retention_time) = "peak_retention_time"
+  peak_retention_time <-format(round(peak_retention_time, 0), nsmall = 0)
+  peak_area <-as.data.frame(ncvar_get(
+  uv280_list[[i]],
+  uv280_list[[i]]$var$peak_area))
+  colnames(peak_area) = hplc_wines$repeats[i]
+  uv_280_spectra <- append(uv_280_spectra,
+                              list(name = c(peak_retention_time, peak_area)),
+                              after = length(uv_280_spectra))
+}
+names(uv_280_spectra) = hplc_wines$filename
 
-
-# DAD 320nm
-signal_2_file <-
-  'C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files/AVN_CB_T0_R1.aia/SIGNAL02.cdf'
-signal_2 <-
-  nc_open(
-    signal_2_file,
-    write = FALSE,
-    readunlim = FALSE,
-    verbose = FALSE,
-    auto_GMT = TRUE,
-    suppress_dimvals = FALSE,
-    return_on_error = FALSE
-  )
-peak_retention_time <-
-  ncvar_get(signal_2, signal_2$var$peak_retention_time)
-peak_retention_time <- as.data.frame(peak_retention_time)
-peak_area <- ncvar_get(signal_2, signal_2$var$peak_area)
-peak_area <- as.data.frame(peak_area)
-signal_2_df <- as.data.frame(c(peak_retention_time, peak_area))
-signal_2_df$peak_retention_time <-
-  (signal_2_df$peak_retention_time) / 60
-
-# DAD 360nm
-signal_3_file <-
-  'C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files/AVN_CB_T0_R1.aia/SIGNAL03.cdf'
-signal_3 <-
-  nc_open(
-    signal_3_file,
-    write = FALSE,
-    readunlim = FALSE,
-    verbose = FALSE,
-    auto_GMT = TRUE,
-    suppress_dimvals = FALSE,
-    return_on_error = FALSE
-  )
-peak_retention_time <-
-  ncvar_get(signal_3, signal_2$var$peak_retention_time)
-peak_retention_time <- as.data.frame(peak_retention_time)
-peak_area <- ncvar_get(signal_3, signal_3$var$peak_area)
-peak_area <- as.data.frame(peak_area)
-signal_3_df <- as.data.frame(c(peak_retention_time, peak_area))
-signal_3_df$peak_retention_time <-
-  (signal_3_df$peak_retention_time) / 60
-
-# DAD 420nm
-signal_4_file <-
-  'C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files/AVN_CB_T0_R1.aia/SIGNAL04.cdf'
-signal_4 <-
-  nc_open(
-    signal_4_file,
-    write = FALSE,
-    readunlim = FALSE,
-    verbose = FALSE,
-    auto_GMT = TRUE,
-    suppress_dimvals = FALSE,
-    return_on_error = FALSE
-  )
-peak_retention_time <-
-  ncvar_get(signal_4, signal_2$var$peak_retention_time)
-peak_retention_time <- as.data.frame(peak_retention_time)
-peak_area <- ncvar_get(signal_4, signal_4$var$peak_area)
-peak_area <- as.data.frame(peak_area)
-signal_4_df <- as.data.frame(c(peak_retention_time, peak_area))
-signal_4_df$peak_retention_time <-
-  (signal_4_df$peak_retention_time) / 60
-
-# FLD , Ex=280, Em=320
-signal_5_file <-
-  'C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files/AVN_CB_T0_R1.aia/SIGNAL05.cdf'
-signal_5 <-
-  nc_open(
-    signal_5_file,
-    write = FALSE,
-    readunlim = FALSE,
-    verbose = FALSE,
-    auto_GMT = TRUE,
-    suppress_dimvals = FALSE,
-    return_on_error = FALSE
-  )
-peak_retention_time <-
-  ncvar_get(signal_4, signal_2$var$peak_retention_time)
-peak_retention_time <- as.data.frame(peak_retention_time)
-peak_area <- ncvar_get(signal_4, signal_4$var$peak_area)
-peak_area <- as.data.frame(peak_area)
-signal_4_df <- as.data.frame(c(peak_retention_time, peak_area))
-signal_4_df$peak_retention_time <-
-  (signal_4_df$peak_retention_time) / 60
-
-{
-  signal_01_linegraph <- ggplot(signal_1_df,
-                                aes(x = peak_retention_time, y = peak_area)) +
-    geom_line(linewidth = 0.2) +
-    geom_point(size = 0.2, shape = 21) +
-    theme_ipsum(base_family = "Arial", axis_text_size = 9) +
-    theme(
-      axis.text.x = element_text(
-        angle = 45,
-        hjust = 0.5,
-        vjust = 0.5
-      ),
-      axis.title.x = element_text(hjust = 0.5, vjust = 0.5),
-      axis.title.y = element_text(hjust = 0.5, vjust = 0.5),
-      axis.ticks.length.x = unit(0, "cm"),
-      axis.ticks.length.y = unit(0, "cm"),
-      legend.key.height = unit(0.5, "cm"),
-      legend.key.width = unit(0.3, "cm"),
-      legend.direction = "vertical",
-      legend.position = c(0.18, 0.55),
-      legend.box.background = element_rect(
-        fill = 'white',
-        colour = 'black',
-        linewidth = 0.1
-      ),
-      legend.text = element_text(size = 8),
-      legend.title = element_text(size = 10)
-    )
-  # scale_x_continuous(breaks = seq(from = min(get(patent_type)$year), to = max(get(patent_type)$year), by = 2),
-  # minor_breaks = 2)+
-  # scale_y_continuous(breaks = my_breaks, minor_breaks = my_minor_breaks)+
-  # labs(x = "RT(min)", y = glue("intensity"), colour = "organizations", fill = "organizations")
-  ggsave(
-    glue("signal_01.jpg"),
-    plot = signal_01_linegraph,
-    width = 30,
-    height = 15,
-    units = 'cm'
-  )
-  browseURL(glue("signal_01.jpg"))
+# retention time deviations. Correction through merging.
+# create a merged data frame block for MFA analysis
+merged_uv280_spectra <- full_join(x=as.data.frame(uv_280_spectra[[1]]), 
+                          y=as.data.frame(uv_280_spectra[[2]]), 
+                          by="peak_retention_time")
+for (i in 3:length(uv_280_spectra)){
+merged_uv280_spectra <- full_join(x=as.data.frame(merged_uv280_spectra), 
+                                  y=as.data.frame(uv_280_spectra[[i]]), 
+                                  by="peak_retention_time")
 }
 
+# print the spectra for the 280 spectra
+plt <- merged_uv280_spectra %>% pivot_longer(!peak_retention_time, 
+                                             names_to = "samples",
+                                             values_to = "peak_area",
+                                             values_drop_na = TRUE)
+plt$peak_retention_time = as.numeric(plt$peak_retention_time)/60
+uv_280 <- ggplot(
+  plt,
+  aes(x = peak_retention_time, y = peak_area, colour = samples)
+) + geom_line(linewidth = 0.1) + theme_bw(base_family = "Arial") + theme(
+  axis.text.x = element_text(
+    angle = 0,
+    hjust = 0.5,
+    vjust = 0.5
+  ),
+  axis.title.x = element_text(hjust = 0.5, vjust = 0.5),
+  axis.title.y = element_text(hjust = 0.5, vjust = 0.5),
+  axis.ticks.length.x = unit(0, "cm"),
+  axis.ticks.length.y = unit(0, "cm"),
+  legend.key.height = unit(0.5, "cm"),
+  legend.key.width = unit(1, "cm"),
+  legend.direction = "horizontal",
+  legend.position = "none",
+  legend.box.background = element_rect(
+    fill = 'white',
+    colour = 'black',
+    linewidth = 0.1
+  ),
+  legend.text = element_text(size = 4),
+  legend.title = element_text(size = 4)
+) +
+  scale_x_continuous(breaks = seq(
+  from = 0,
+  to = 30,
+  by = 1
+)) +
+  scale_y_continuous(
+  breaks = seq(
+    from = 0,
+    to = 650,
+    length = 10
+  ),
+  labels = scales::label_comma()
+)
 
-# FactomineR PCA plots
-rm(list = ls())
-library(readxl)
-setwd("C:/Users/mafata/Desktop/WORK/HPLC scanning/Charts/CBUV")
-library(FactoMineR) # For producing  PCA
-library(tidyverse) # This has ggplot2 and tidy packages as dependencies
-library(tidyselect) # To select inside a dplyr pipe
-library(factoextra) # Additional visualization commands using fviz
-library(glue) # Add python-style f-strings
-library(plotly) # To create interactive charts
-library(htmlwidgets) # To save interactive charts
-library(rlist) # Add the list type
-library(ggsci) #colour pallet for scientific plots
+ggsave("uv_280_spectral_overlay.svg",
+       plot = uv_280,
+       width = 30,
+       height = 12,
+       units = "cm")
 
-# import data sets
-CBUVabsorbance <-
-  read_excel(
-    "C:/Users/mafata/Desktop/TOTALLY A WORK FILE/HPLC scanning/CB_HPLC.xlsx",
-    col_names = TRUE,
-    sheet = 'CBUVabsorbance'
-  )
-CBUVabsorbance <- as.data.frame(CBUVabsorbance)
-rownames(CBUVabsorbance) <- CBUVabsorbance$PrimaryID
 
-# Make a list of the three regions
-mylist <- list("AVN", "CDB", "FRV", "DTK", "KZC", "PDB")
-
-for (farm in mylist) {
-  # filter by farm
-  farm_table <- CBUVabsorbance %>%
-    filter(Winery == farm)
-  
-  # Generate PCA
-  farm_pca <- PCA(
-    farm_table,
-    quali.sup = c(1:3),
-    ind.sup = 3,
-    ncp = 25,
-    graph = FALSE
-  )
-  # scree plots
-  farm_scree <-
-    fviz_screeplot(farm_pca, ncp = 25, addlabels = TRUE)
-  save_plot(
-    glue("{farm}_scree.jpg"),
-    fig = farm_scree,
-    width = 29.7,
-    height = 21
-  )
-  
-  gg_farm_scree <- ggplotly(farm_scree)
-  saveWidget(gg_farm_scree, file = glue("gg_{farm}_scree.html"))
-  browseURL(glue("gg_{farm}_scree.html"))
-  
-  # Generate the PCA plots
-  
-  # Graphical plots for individuals, variables, and biplot
-  farm_pca_ind <- fviz_pca_ind(
-    farm_pca,
-    axes = c(1, 2),
-    geom.ind = c("point"),
-    habillage = 2,
-    repel = TRUE,
-    addEllipses = TRUE,
-    ellipse.level = 0.95,
-    palette = "lancet",
-    #colour palette for the pca
-    label = "ind"
-  ) + theme(
-    text = element_text(size = 5),
-    legend.text = element_text(size = 6),
-    legend.position = "bottom",
-    plot.title = element_text(size = 5),
-    axis.title.x = element_text(size = 5, hjust = 0.75),
-    axis.title.y = element_text(size = 5, hjust = 0.6)
-  )
-  save_plot(
-    glue("{farm}_pca_ind.jpg"),
-    fig = farm_pca_ind,
-    width = 29.7,
-    height = 21
-  )
-  
-  gg_farm_pca_ind <-
-    ggplotly(farm_pca_ind, tooltip = c("text"))
-  saveWidget(gg_farm_pca_ind, file = glue("{farm}_pca_ind.html"))
-  browseURL(glue("{farm}_pca_ind.html"))
-  
-  # clustering of individuals
-  farm_clustering <-
-    HCPC(
-      farm_pca,
-      nb.clust = -1,
-      consol = FALSE,
-      iter.max = 10,
-      min = 3,
-      max = 4,
-      metric = "euclidean",
-      method = "ward",
-      order = TRUE,
-      graph.scale = "inertia",
-      nb.par = 5,
-      graph = FALSE,
-      description = TRUE
-    )
-  farm_cluster_plot <-
-    plot.HCPC(
-      farm_clustering,
-      axes = c(1, 2),
-      choice = "tree",
-      cex = 0.5,
-      rect = FALSE,
-      draw.tree = TRUE,
-      ind.names = TRUE,
-      title = NULL,
-      tree.barplot = TRUE,
-      centers.plot = FALSE
-    )
-  save_plot(
-    glue("{farm}_pca_cluster_ind.jpg"),
-    fig = farm_cluster_plot,
-    width = 29.7,
-    height = 21
-  )
-  ##########generate the PCA variables plots ###########
-  farm_pca_var <- fviz_pca_var(
-    farm_pca,
-    axes = c(1, 2),
-    repel = TRUE,
-    geom.ind = c("point"),
-    label = "none",
-    geom = "point",
-    col.var = "contrib"
-  ) + theme(
-    text = element_text(size = 8),
-    legend.text = element_text(size = 6),
-    legend.position = "bottom",
-    plot.title = element_text(size = 8),
-    axis.title.x = element_text(size = 8, hjust = 0.75),
-    axis.title.y = element_text(size = 8, hjust = 0.6)
-  )
-  save_plot(
-    glue("{farm}_pca_ind.jpg"),
-    fig = farm_pca_ind,
-    width = 29.7,
-    height = 21
-  )
-  gg_farm_pca_var <-
-    ggplotly(farm_pca_var, tooltip = c("x", "y", "text"))
-  saveWidget(gg_farm_pca_var, file = glue("{farm}_pca_var.html"))
-  browseURL(glue("{farm}_pca_var.html"))
+# fetch the 320 nm spectra for each signal into separate data frames
+uv_320_spectra = list()
+for (i in 1:length(uv320_list)){
+  # Add verbosity to the script
+  print(glue(". . . generating sample number {i} uv 320 nm spectra"))
+  peak_retention_time <-as.data.frame(ncvar_get(
+    uv320_list[[i]],
+    uv320_list[[i]]$var$peak_retention_time))
+  colnames(peak_retention_time) = "peak_retention_time"
+  peak_retention_time <-format(round(peak_retention_time, 0), nsmall = 0)
+  peak_area <-as.data.frame(ncvar_get(
+    uv320_list[[i]],
+    uv320_list[[i]]$var$peak_area))
+  colnames(peak_area) = hplc_wines$repeats[i]
+  uv_320_spectra <- append(uv_320_spectra,
+                           list(name = c(peak_retention_time, peak_area)),
+                           after = length(uv_320_spectra))
 }
+names(uv_320_spectra) = hplc_wines$filename
+
+# retention time deviations. Correction through merging.
+# create a merged data frame block for MFA analysis
+merged_uv320_spectra <- full_join(x=as.data.frame(uv_320_spectra[[1]]), 
+                                  y=as.data.frame(uv_320_spectra[[2]]), 
+                                  by="peak_retention_time")
+for (i in 3:length(uv_320_spectra)){
+  merged_uv320_spectra <- full_join(x=as.data.frame(merged_uv320_spectra), 
+                                    y=as.data.frame(uv_320_spectra[[i]]), 
+                                    by="peak_retention_time")
+}
+
+# print the spectra for the 320 spectra
+
+plt2 <- merged_uv320_spectra %>% pivot_longer(!peak_retention_time, 
+                                             names_to = "samples",
+                                             values_to = "peak_area",
+                                             values_drop_na = TRUE)
+plt2$peak_retention_time = as.numeric(plt2$peak_retention_time)/60
+
+uv_320 <- ggplot(
+  plt2,
+  aes(x = peak_retention_time, y = peak_area, colour = samples)
+) + geom_line(linewidth = 0.1) + theme_bw(base_family = "Arial") + theme(
+  axis.text.x = element_text(
+    angle = 0,
+    hjust = 0.5,
+    vjust = 0.5
+  ),
+  axis.title.x = element_text(hjust = 0.5, vjust = 0.5),
+  axis.title.y = element_text(hjust = 0.5, vjust = 0.5),
+  axis.ticks.length.x = unit(0, "cm"),
+  axis.ticks.length.y = unit(0, "cm"),
+  legend.key.height = unit(0.5, "cm"),
+  legend.key.width = unit(1, "cm"),
+  legend.direction = "horizontal",
+  legend.position = "none",
+  legend.box.background = element_rect(
+    fill = 'white',
+    colour = 'black',
+    linewidth = 0.1
+  ),
+  legend.text = element_text(size = 4),
+  legend.title = element_text(size = 4)
+) +
+  scale_x_continuous(breaks = seq(
+    from = 0,
+    to = 30,
+    by = 1
+  )) +
+  scale_y_continuous(
+    breaks = seq(
+      from = 0,
+      to = ceiling(max(plt2$peak_area)),
+      length = 10
+    ),
+    labels = scales::label_comma()
+  )
+ggsave("uv_320_spectral_overlay.svg",
+       plot = uv_320,
+       width = 30,
+       height = 12,
+       units = "cm")
+
+
+
+
+
+# run the MFA
+library("FactoMineR")
+library("factoextra")
+df1 <- merged_uv280_spectra
+row.names(df1) <- df1$peak_retention_time
+df1 <- t(df1)
+df1 <- as.data.frame(df1[c(-1),])
+df1$samples <- row.names(df1)
+  
+df2 <- merged_uv320_spectra
+row.names(df2) <- df2$peak_retention_time
+df2 <- t(df2)
+df2 <- as.data.frame(df2[c(-1),])
+df2$samples <- row.names(df2)
+
+merged_df <- full_join(x=df1,
+                       y=df2,
+                       by="samples")
+merged_df <- merged_df[,c(-1234)]
+merged_df[] <- lapply(df, as.numeric)
+  
+mfa_plot <- MFA(
+  merged_df,
+  group = c(770,463),
+  type = c(rep("s", 2)),
+  ncp = 40,
+  name.group = c("CB",
+                 "SB"),
+  graph = TRUE)
+fviz_mfa_ind(mfa_plot,
+             geom = c("point", "text"),
+             axes = c(1,2)
+)
