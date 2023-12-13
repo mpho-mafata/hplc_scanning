@@ -1,5 +1,5 @@
 rm(list = ls())#clear the environment to save on driver space and run faster
-setwd("C:/Users/mafata/Documents/GitHub/hplc_scanning/assets")
+setwd("/Users/mphomafata/Documents/GitHub/hplc_scanning")
 library("ncdf4") # for accessing information in a cdf file
 library("tidyverse") # to wrangle data frames
 library("glue") 
@@ -9,13 +9,13 @@ library("scales") # for formating numerical data in plots
 hplc_wines <-
   data.frame(
     filename = list.files(
-      "C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files"
+      "/Users/mphomafata/Documents/Work_file/Collaborative Work/HPLC scanning/CDF files"
     )
   )
 hplc_wines <- hplc_wines  %>%
   mutate(
     filepath = paste0(
-      "C:/Users/mafata/Desktop/WORK/Collaborative Work/HPLC scanning/CDF files/",
+      "/Users/mphomafata/Documents/Work_file/Collaborative Work/HPLC scanning/CDF files/",
       filename
     )
   )
@@ -219,7 +219,6 @@ ggsave("uv_320_spectral_overlay.svg",
        width = 30,
        height = 12,
        units = "cm")
-
 # fetch the 360 nm spectra for each signal into separate data frames
 uv_360_spectra = list()
 for (i in 1:length(uv360_list)){
