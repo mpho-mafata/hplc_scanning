@@ -157,6 +157,7 @@ It is always good practice to have a look at the spectra to see if there are any
 </table>
 
 From this we can see something is up. This is not the spectrum we expect. In generating this data set, I extracted it as AIA format. Previously, before I started using scripting language, I generated it as a spectrum of values. The values were more frequent than this, I extracted the sprectrum that had a much higher frequency than this. This extraction may have been due to my specifications when extracting the data in different formats so I need to find out more about hoe Agilent instrument data extractions are structured and formated, it took a lot of investigating to begin with. 
+What it looks like at the moment is that I extracted the spectra as a peak integrated spectrum. At the time I may not have known better and assumed that the spectral output would be binned somehow.
 
 # Analysing the data
 Next I will try and use multivariate statistics and clustering to decipher the data.
