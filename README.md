@@ -233,4 +233,7 @@ mfa_plot <- MFA(
 <img height="500" width = "1000" src="./assets/mfa_groups.jpg" align = "left" >
 <figcaption>MFA group representation of the spectra for uv_vis 280nm.</figcaption>
 
+# Spectral preprocessing
+Although we have managed to obtained a more iconic specrum (baselines are much more resolved, peak symmetry that's more gaussian) we find that there seems to be some misallignments in the peaks and the baseline is slightly ofset among sprectra. Here we will see what we can do with that.
 
+__Coming soon!__
