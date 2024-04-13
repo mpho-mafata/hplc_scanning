@@ -24,7 +24,7 @@ These data were generated using scanning gradient in high performance liquid chr
 > [Analysing the data](https://github.com/mpho-mafata/hplc_scanning/tree/main#analysing-the-data)
 >
 
-# Data wrangling
+# [Data wrangling](https://github.com/mpho-mafata/hplc_scanning/blob/main/hplc_scanning.R)
 I started by unnesting the files into workable lists. 
 This can always be improved and accomading to the desired analysis pipeline.
 This means a total of 1505 spectra processed.
@@ -120,7 +120,7 @@ for (i in 1:length(uv280_list)){
 names(uv_280_spectra) = hplc_wines$filename
 ```
 
-# Inspecting the chromatograms
+# [Inspecting the chromatograms](https://github.com/mpho-mafata/hplc_scanning/tree/main#data-wrangling)
 Then next hurdle is plotting the chromatograms to see if everything is okay inside.
 It is always good practice to have a look at the spectra to see if there are any funny things going on.
 <table>
@@ -156,8 +156,84 @@ It is always good practice to have a look at the spectra to see if there are any
  </tr>
 </table>
 
-From this we can see something is up. This is not the spectrum we expect. In generating this data set, I extracted it as AIA format. Previously, before I started using scripting language, I generated it as a spectrum of values. The values were more frequent than this, I extracted the sprectrum that had a much higher frequency than this. This extraction may have been due to my specifications when extracting the data in different formats so I need to find out more about hoe Agilent instrument data extractions are structured and formated, it took a lot of investigating to begin with. 
-What it looks like at the moment is that I extracted the spectra as a peak integrated spectrum. At the time I may not have known better and assumed that the spectral output would be binned somehow.
+# [Analysing the data](https://github.com/mpho-mafata/hplc_scanning/blob/main/hplc_scanning_analysis.R)
+From the previous section we can see that something is up. These are not the expected spectral asthetics. In generating this data set, I extracted it as AIA format. Previously, before I started using scripting language, I generated it as a spectrum of values manually and pain-stakingly copied and pasted into an excel sheet. The values were more frequent than this. The AIA extraction may have been due to my specifications when extracting the data in different formats so I need to find out more about how Agilent instrument data extractions are structured and formated since I suspect it may require peak integration. 
 
-# Analysing the data
-Next I will try and use multivariate statistics and clustering to decipher the data.
+## Re-wrangling the data from the spreadsheet
+The data was pasted as a tuple in seperate columns so we will extract every couple (RT, Abs) and merge them as a naive way to aligning by the retention time.
+
+```
+hplc_wines <-
+  readxl::read_excel(path = "/Users/~/HPLC scouting.xlsx",
+                     sheet = "280 nm SB") 
+uv_280 <- list()
+for (i in 1:(ncol(hplc_wines))) {
+  first <- as.numeric((2 * i) - 1)
+  second <- as.numeric(2 * i)
+  sample_i <- hplc_wines[c(first, second)]
+  colnames(sample_i)[1] <- c("rt")
+  sample_i <- list(sample_i)
+  uv_280 <- append(uv_280, sample_i)
+}
+name_list <-
+  row.names(as.data.frame(t(hplc_wines)) %>% filter(row_number() %% 2 == 0))
+names(uv_280) <- name_list
+
+# create a merged data frame
+merged_uv280_spectra <- full_join(x = as.data.frame(uv_280[[1]]),
+                                  y = as.data.frame(uv_280[[2]]),
+                                  by = "rt")
+for (i in 3:length(uv_280)) {
+  merged_uv280_spectra <-
+    full_join(
+      x = as.data.frame(merged_uv280_spectra),
+      y = as.data.frame(uv_280[[i]]),
+      by = "rt"
+    )
+}
+merged_uv280_spectra <- merged_uv280_spectra %>%
+  pivot_longer(
+    !rt,
+    names_to = "samples",
+    values_to = "peak_area",
+    values_drop_na = TRUE
+  )
+```
+If we compare the previous spectra and the above one we see the differences in the spectral frequecies.
+<table>
+ <tr>
+<td>
+  <img height="200" src="./assets/uv_280_spectral_overlay.svg" >
+  <figcaption> The previous overlay spectra for uv_vis 280nm. </figcaption>
+</td>
+
+<td>
+  <img height="200" src="./assets/uv_280_new_spectral_overlay.jpg" >
+   <figcaption>New overlay spectra for uv_vis 280nm.</figcaption>
+</td>
+  </tr>
+
+ </tr>
+</table>
+
+
+## Multiple Factor Analysis (MFA)
+Having inspected the new spectra and feeling confident enough about the spectral properties, we can analyse and compare between sample groups using MFA.
+
+```
+mfa_plot <- MFA(
+  merged_uv280_spectra[-1],
+  group = c(26, 25, 25, 25, 25, 25),
+  type = c(rep("s", 6)),
+  ncp = 4,
+  name.group = c("AVN", "CDB", "DTK", "FRV", "KZN", "PDB"),
+  graph = TRUE
+)
+```
+<img height="500" width = "1000" src="./assets/mfa_groups.jpg" align = "left" >
+<figcaption>MFA group representation of the spectra for uv_vis 280nm.</figcaption>
+
+# Spectral preprocessing
+Although we have managed to obtained a more iconic specrum (baselines are much more resolved, peak symmetry that's more gaussian) we find that there seems to be some misallignments in the peaks and the baseline is slightly ofset among sprectra. Here we will see what we can do with that.
+
+__Coming soon!__
