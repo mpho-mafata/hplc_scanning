@@ -234,6 +234,25 @@ mfa_plot <- MFA(
 <figcaption>MFA group representation of the spectra for uv_vis 280nm.</figcaption>
 
 # Spectral preprocessing
-Although we have managed to obtained a more iconic specrum (baselines are much more resolved, peak symmetry that's more gaussian) we find that there seems to be some misallignments in the peaks and the baseline is slightly ofset among sprectra. Here we will see what we can do with that.
+Although we have managed to obtained a more iconic specrum (baselines are much more resolved, peak symmetry that's more gaussian) we find that there seems to be some misallignments in the peaks and the baseline is slightly ofset among sprectra. 
+
+<table>
+ <tr>
+<td>
+  <img height="200" src="./assets/uv_280_cb_new_spectral_overlay.jpg" >
+  <figcaption> New overlay for the Chenin Blanc uv_vis 280nm. </figcaption>
+</td>
+
+<td>
+  <img height="200" src="./assets/fl_sb_new_spectral_overlay.jpg" >
+   <figcaption>New overlay for fluorescence spectra.</figcaption>
+</td>
+  </tr>
+
+ </tr>
+</table>
+
+Here we will see what we can do with that.
+
 
 __Coming soon!__
