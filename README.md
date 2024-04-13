@@ -120,7 +120,7 @@ for (i in 1:length(uv280_list)){
 names(uv_280_spectra) = hplc_wines$filename
 ```
 
-# Inspecting the chromatograms
+# [Inspecting the chromatograms](https://github.com/mpho-mafata/hplc_scanning/tree/main#data-wrangling)
 Then next hurdle is plotting the chromatograms to see if everything is okay inside.
 It is always good practice to have a look at the spectra to see if there are any funny things going on.
 <table>
