@@ -512,3 +512,6 @@ fviz_mfa_ind(mfa_plot,
              geom = c("point", "text"),
              axes = c(1,2)
 )
+
+
+
