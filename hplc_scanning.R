@@ -132,7 +132,7 @@ uv_280 <- ggplot(
   labels = scales::label_comma()
 )
 
-ggsave("uv_280_spectral_overlay.svg",
+ggsave("uv_280_spectral_overlay.jpg",
        plot = uv_280,
        width = 30,
        height = 12,
@@ -295,7 +295,7 @@ uv_360 <- ggplot(
     ),
     labels = scales::label_comma()
   )
-ggsave("uv_360_spectral_overlay.svg",
+ggsave("uv_360_spectral_overlay.jpg",
        plot = uv_360,
        width = 30,
        height = 12,
@@ -377,7 +377,7 @@ uv_420 <- ggplot(
     ),
     labels = scales::label_comma()
   )
-ggsave("uv_420_spectral_overlay.svg",
+ggsave("uv_420_spectral_overlay.jpg",
        plot = uv_420,
        width = 30,
        height = 12,
